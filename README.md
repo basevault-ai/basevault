@@ -69,9 +69,9 @@ cryptographic *attestation* — proof the enclave is running the exact
 image we expected, not something that swapped your prompt out to
 plaintext.
 
-BaseVault's Settings panel has a **Verify** button per model. The
-verification doesn't just say "ok": it walks the full trust chain and
-shows what it checked. If you click "View chain," you see this
+BaseVault's Settings panel has a **Verify** button per model. It runs
+the embedded Tinfoil SDK's full verification and shows what the SDK
+checked — not just "ok." If you click "View chain," you see this
 expanded into raw evidence (hashes, signatures, transparency-log
 entries) you can copy + audit yourself.
 
@@ -159,27 +159,31 @@ so you don't have to take anyone's word):
 | Throughput                    | 1 worker           | multiple parallel                         |
 | Quality ceiling               | Local RAM/VRAM     | Hosted frontier models                    |
 
-**The chain, end to end**:
+**The chain, end to end.** The verification is performed by the
+**Tinfoil SDK** BaseVault embeds (the `tinfoil` PyPI package, source at
+`github.com/tinfoilsh/tinfoil-python`) — not by code in this
+repository. BaseVault triggers it, refuses inference if it fails, and
+logs the evidence. What the SDK checks on each call:
 
 1. The enclave hardware produces a cryptographic *quote* — a signed
    measurement of the loaded code. This is rooted in AMD/Intel's
    silicon CA.
-2. We compare the quote's measurement against the published deployment
-   manifest (`tinfoil-deployment.json`) for the model on
+2. The SDK compares the quote's measurement against the published
+   deployment manifest (`tinfoil-deployment.json`) for the model on
    `github.com/tinfoilsh/confidential-<model>`. Match → the enclave
    is running what Tinfoil publicly committed to.
-3. We verify the deployment's SLSA *provenance attestation* via
+3. The SDK verifies the deployment's SLSA *provenance attestation* via
    Sigstore. Match → the artifact was built by the expected GitHub
    Actions workflow on Tinfoil's repo, signed at build time, recorded
    in Rekor's public transparency log.
 4. The enclave's Linux toolchain (kernel, initrd, root filesystem)
-   has its hashes embedded in the same quote — so you're verifying
-   the whole boot chain, not just the model image.
+   has its hashes embedded in the same quote — so the whole boot chain
+   is verified, not just the model image.
 
-If any step fails or returns a measurement we don't expect, the trust
-bar in the app turns red and inference is refused. Local mode runs
-offline and has no attestation surface; the production binary carries
-no other mode that crosses a trust boundary.
+If any step fails or returns an unexpected measurement, BaseVault turns
+the trust bar red and refuses inference. Local mode runs offline and
+has no attestation surface; the production binary carries no other mode
+that crosses a trust boundary.
 
 The full evidence (raw quote bytes, TUF metadata, Sigstore bundle,
 Rekor inclusion proof) is logged to
@@ -198,9 +202,10 @@ these kinds, and never any other:
    runs make neither call.
 2. **Attestation verification (automatic, when a TEE model is
    configured).** So the trust indicator reflects current reality
-   rather than a one-time check, BaseVault verifies the configured
-   enclave's attestation **at startup and then once an hour** in the
-   background — plus on demand when you re-check from Settings. Each
+   rather than a one-time check, BaseVault re-runs the Tinfoil SDK's
+   verification of the configured enclave's attestation **at startup and
+   then once an hour** in the background — plus on demand when you
+   re-check from Settings. Each
    verification fetches a live attestation quote from the enclave,
    certificate collateral from Intel's attestation service (PCS), and
    the deployment manifest from GitHub. This is *metadata* — which
@@ -245,7 +250,7 @@ rather than glossed over.
 Input files flow through these stages:
 
 1. **Ingest** — whitelist of supported formats (txt, md, pdf, docx, json,
-   zip, images). Files > 20 MB are dropped. Zips are recursively
+   zip, images). Files > 40 MB are dropped. Zips are recursively
    extracted. Images are transcribed via a vision model that matches the
    pipeline mode (never cross-boundary).
 2. **Split** — per-file document segmentation. Bundles (multiple
