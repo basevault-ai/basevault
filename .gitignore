@@ -9,7 +9,7 @@ private/
 *.7z
 *.pdf
 # ...except synthesized test fixtures, which are tiny + non-private.
-!engine/tests/fixtures/*.pdf
+!python/engine/tests/fixtures/*.pdf
 .DS_Store
 
 # Editor swap files — `*.env` above does not match a stray .env.swp, and

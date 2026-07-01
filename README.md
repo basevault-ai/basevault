@@ -422,6 +422,22 @@ GitHub Releases, and the in-app **Check for updates** button (see
 [Network activity](#network-activity)) resolves against the same
 signed manifest.
 
+### Verifying a download
+
+Every release artifact carries a GitHub-native **build-provenance
+attestation** — a Sigstore-signed, transparency-log-backed record of the
+exact workflow run and source commit that produced it. Verify a download
+against it, pinned to this repository, with the GitHub CLI:
+
+```bash
+gh attestation verify BaseVault_<version>_aarch64.dmg \
+  --repo basevault-ai/basevault
+```
+
+A pass means the bytes you have were built by this repo's release
+workflow from a specific commit — not repackaged or swapped downstream.
+The signed digests are also printed on each release run's summary page.
+
 ## License
 
 Apache License 2.0 — see [`LICENSE`](LICENSE).
