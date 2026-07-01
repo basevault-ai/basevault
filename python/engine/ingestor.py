@@ -13,7 +13,7 @@ Supported formats (whitelist — anything else is skipped):
 
 Explicit skips:
   .html / .htm — excluded to exercise the skip path
-  Any file > 20 MB — dropped
+  Any file > 40 MB — dropped
 
 Usage:
     from engine.ingestor import ingest
@@ -626,7 +626,7 @@ def _ingest_file(
         _log(f"  Cannot stat {path}, skipping")
         return []
     if size > MAX_FILE_SIZE:
-        _log(f"  Skipping {path.name}: {size / 1024 / 1024:.1f} MB > 20 MB limit")
+        _log(f"  Skipping {path.name}: {size / 1024 / 1024:.1f} MB > {MAX_FILE_SIZE // (1024 * 1024)} MB limit")
         return []
 
     # Explicit exclusion
