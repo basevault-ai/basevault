@@ -1,0 +1,59 @@
+# never commit private data
+private/
+*.key
+*.pem
+*.env
+*.secret
+*.backup
+*.zip
+*.7z
+*.pdf
+# ...except synthesized test fixtures, which are tiny + non-private.
+!engine/tests/fixtures/*.pdf
+.DS_Store
+
+# Editor swap files — `*.env` above does not match a stray .env.swp, and
+# *.sw? also catches .swo/.swn.
+*.swp
+*.sw?
+
+# Local eval data — git-tracked separately, only locally.
+/data
+
+# Python bytecode caches + venv.
+__pycache__/
+.venv
+
+# Frontend deps + build output.
+node_modules/
+dist/
+dist-ssr/
+*.local
+release/
+
+# Logs.
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Editor dirs/files.
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# Bundled Python sidecar — materialized by scripts/setup-bundled-python.sh
+src-tauri/binaries/
+
+# Personal Claude Code overrides + runtime state (when working in this
+# checkout with Claude Code).
+.claude/settings.local.json
+.claude/*.lock
+.claude/.*.swp

@@ -1,0 +1,93 @@
+{
+  "actions": [
+    {
+      "recommendation": "Cap contract review at 30 minutes",
+      "kind": "protocol",
+      "objective": "Bounded review loop",
+      "why": "Re-reading drags without changing decisions.",
+      "immediate_action": "Today: set a 30-min timer on next contract.",
+      "habit": "One pass + timer for every contract.",
+      "success_metric": "Zero contracts re-read >2\u00d7/quarter.",
+      "horizon": "short",
+      "review_date": "2025-05-15",
+      "regret_reduction": 0.8,
+      "leverage": 0.5,
+      "consequence": 0.6,
+      "generativity": 0.3,
+      "decisiveness": 0.7,
+      "time_to_feedback": 0.8,
+      "constraint_fit": 0.7,
+      "confidence": 0.85,
+      "score": 0.6174999999999999,
+      "source_insights": [
+        [
+          "critical",
+          0,
+          0.85
+        ]
+      ],
+      "hallucinated_ref_count": 0
+    },
+    {
+      "recommendation": "Stack a 2-minute stretch onto the morning run",
+      "kind": "experiment",
+      "objective": "Resilient morning routine",
+      "why": "Habit stacks compound.",
+      "immediate_action": "Tomorrow: 2-min stretch post-run.",
+      "habit": "Daily 2-min stretch.",
+      "success_metric": "3 weeks unbroken.",
+      "horizon": "medium",
+      "review_date": "2025-07-01",
+      "regret_reduction": 0.4,
+      "leverage": 0.7,
+      "consequence": 0.4,
+      "generativity": 0.6,
+      "decisiveness": 0.6,
+      "time_to_feedback": 0.7,
+      "constraint_fit": 0.8,
+      "confidence": 0.9,
+      "score": 0.5625,
+      "source_insights": [
+        [
+          "cross_domain",
+          0,
+          0.9
+        ]
+      ],
+      "hallucinated_ref_count": 0
+    },
+    {
+      "recommendation": "Calendar weekly friend check-in",
+      "kind": "commit",
+      "objective": "Connection cadence",
+      "why": "Cadence maintains the ledger.",
+      "immediate_action": "Block Sunday 8 PM weekly.",
+      "habit": "Weekly call rotation.",
+      "success_metric": "3 calls/month sustained.",
+      "horizon": "long",
+      "review_date": "2025-08-01",
+      "regret_reduction": 0.3,
+      "leverage": 0.6,
+      "consequence": 0.4,
+      "generativity": 0.5,
+      "decisiveness": 0.5,
+      "time_to_feedback": 0.5,
+      "constraint_fit": 0.7,
+      "confidence": 0.8,
+      "score": 0.47,
+      "source_insights": [
+        [
+          "cross_domain",
+          1,
+          0.8
+        ],
+        [
+          "cross_domain",
+          99,
+          0.3
+        ]
+      ],
+      "hallucinated_ref_count": 1
+    }
+  ]
+}

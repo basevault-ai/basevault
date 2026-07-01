@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Rounded square: darker fill, thin frame stroke.
+       Transparent outside the rounded path — macOS .icns
+       supports alpha and renders the icon over Dock / Finder /
+       Cmd-Tab / Launchpad backgrounds. -->
+  <rect x="10" y="10" width="80" height="80" rx="18.7"
+        fill="#0A1118"
+        stroke="#8E9AAB" stroke-width="3.5"/>
+
+  <!-- Centered emerald dot -->
+  <circle cx="50" cy="50" r="14" fill="#07db78"/>
+</svg>

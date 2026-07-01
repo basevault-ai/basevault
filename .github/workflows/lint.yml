@@ -1,0 +1,33 @@
+name: Lint
+
+# F-class (PyFlakes-equivalent) gate. Fails the workflow on undefined
+# names, unused locals, redefinitions, and similar real-bug shapes.
+# Rule selection + Python target are pinned in pyproject.toml so the
+# local `ruff check` and the CI run see the same config.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  ruff:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+
+      - name: Install ruff
+        run: pip install ruff==0.8.0
+
+      - name: Run ruff F-class check
+        run: ruff check --select F .
+
+      - name: Trust-surface gates
+        run: python scripts/trust_gates.py
+
+      - name: Code-correctness gates
+        run: python scripts/code_gates.py

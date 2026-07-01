@@ -1,0 +1,40 @@
+{
+  "work": [
+    {
+      "name": "Consistent commitment",
+      "description": "Follows through on commitments at work.",
+      "kind": "behavior",
+      "count": 2,
+      "source_facts": [
+        [
+          0,
+          0.9
+        ],
+        [
+          1,
+          0.8
+        ]
+      ],
+      "hallucinated_ref_count": 0
+    }
+  ],
+  "health": [
+    {
+      "name": "Regular runner",
+      "description": "Runs weekly and tracks how it feels.",
+      "kind": "habit",
+      "count": 2,
+      "source_facts": [
+        [
+          0,
+          1.0
+        ],
+        [
+          1,
+          0.6
+        ]
+      ],
+      "hallucinated_ref_count": 0
+    }
+  ]
+}

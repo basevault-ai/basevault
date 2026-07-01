@@ -1,0 +1,130 @@
+{
+  "work": [
+    {
+      "type": "fact",
+      "summary": "Alice signed the contract",
+      "occurred_at": "2025-04-01",
+      "occurred_at_text": null,
+      "entities": [
+        {
+          "name": "Alice",
+          "type": "person",
+          "role": "subject"
+        }
+      ],
+      "evidence": [
+        {
+          "text": "Alice signed the contract",
+          "ref": "note",
+          "start_char": null,
+          "end_char": null,
+          "file_path": "note",
+          "file_offset": 0,
+          "file_length": 25,
+          "approximate": false
+        }
+      ],
+      "topics": [
+        "work"
+      ],
+      "tags": [],
+      "confidence": 0.9,
+      "relation_candidate": null
+    },
+    {
+      "type": "event",
+      "summary": "Alice presented quarterly results",
+      "occurred_at": null,
+      "occurred_at_text": null,
+      "entities": [
+        {
+          "name": "Alice",
+          "type": "person",
+          "role": "subject"
+        }
+      ],
+      "evidence": [
+        {
+          "text": "Quarterly results presented today",
+          "ref": "note",
+          "start_char": null,
+          "end_char": null,
+          "file_path": "note",
+          "file_offset": 27,
+          "file_length": 33,
+          "approximate": false
+        }
+      ],
+      "topics": [
+        "work"
+      ],
+      "tags": [],
+      "confidence": 0.85,
+      "relation_candidate": null
+    }
+  ],
+  "health": [
+    {
+      "type": "event",
+      "summary": "Alice ran 5km on Monday",
+      "occurred_at": null,
+      "occurred_at_text": null,
+      "entities": [
+        {
+          "name": "Alice",
+          "type": "person",
+          "role": "subject"
+        }
+      ],
+      "evidence": [
+        {
+          "text": "Ran 5km on Monday morning",
+          "ref": "note",
+          "start_char": null,
+          "end_char": null,
+          "file_path": "note",
+          "file_offset": 62,
+          "file_length": 25,
+          "approximate": false
+        }
+      ],
+      "topics": [
+        "health"
+      ],
+      "tags": [],
+      "confidence": 1.0,
+      "relation_candidate": null
+    },
+    {
+      "type": "emotion",
+      "summary": "Alice felt energized after the run",
+      "occurred_at": null,
+      "occurred_at_text": null,
+      "entities": [
+        {
+          "name": "Alice",
+          "type": "person",
+          "role": "subject"
+        }
+      ],
+      "evidence": [
+        {
+          "text": "Felt energized after the run",
+          "ref": "note",
+          "start_char": null,
+          "end_char": null,
+          "file_path": "note",
+          "file_offset": 89,
+          "file_length": 28,
+          "approximate": false
+        }
+      ],
+      "topics": [
+        "health"
+      ],
+      "tags": [],
+      "confidence": 0.7,
+      "relation_candidate": null
+    }
+  ]
+}

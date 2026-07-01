@@ -1,0 +1,19 @@
+# Prohibit unsupervised changes to specific security-critical items.
+
+# Kernel is 100% human maintained.
+/python/kernel/                 @straian
+
+# Enforces shareable diagnostics to be content free.
+/python/engine/shareable.py     @straian
+
+# Safety checks in the release workflow.
+/.github/workflows/release.yml  @straian
+/scripts/trust_gates.py         @straian
+
+# Script to publish to the public mirror.
+/scripts/publish-release.sh     @straian
+# Files to exclude from public mirror.
+/scripts/publish-exclude.txt    @straian
+
+# This file.
+/.github/CODEOWNERS             @straian

@@ -1,0 +1,52 @@
+{
+  "cross_domain": [
+    {
+      "name": "Discipline transfers",
+      "description": "Discipline at work and health share a routine root.",
+      "mechanism": "Routines compound across domains.",
+      "implication": "New habits stack readily on existing ones.",
+      "domains": [
+        "work",
+        "health"
+      ],
+      "proposed_actions": [
+        "stack new habit on morning run"
+      ],
+      "source_patterns": [
+        [
+          "work",
+          0,
+          0.9
+        ],
+        [
+          "health",
+          0,
+          0.85
+        ]
+      ],
+      "hallucinated_ref_count": 0
+    }
+  ],
+  "critical": [
+    {
+      "name": "Single-track recovery risk",
+      "description": "No alternative to running for stress release.",
+      "mechanism": "Single-channel coping fragile to injury.",
+      "implication": "A leg injury would compound.",
+      "domains": [
+        "health"
+      ],
+      "proposed_actions": [
+        "adopt a low-impact alternative"
+      ],
+      "source_patterns": [
+        [
+          "health",
+          0,
+          0.7
+        ]
+      ],
+      "hallucinated_ref_count": 0
+    }
+  ]
+}

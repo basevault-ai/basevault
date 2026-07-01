@@ -1,0 +1,17 @@
+{
+  "work": [
+    {
+      "name": "Follows through",
+      "description": "Honors commitments.",
+      "kind": "behavior",
+      "count": 1,
+      "source_facts": [
+        [
+          0,
+          0.9
+        ]
+      ],
+      "hallucinated_ref_count": 0
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+[tool.ruff]
+extend-exclude = [
+    "src-tauri/binaries",
+    "src-tauri/target",
+    "node_modules",
+    ".venv",
+    "data",
+    "benchmarks",
+]
+
+[tool.ruff.lint]
+# F-class only: PyFlakes-equivalent checks (undefined names, unused
+# locals, shadowed names). Other rule families (E/W/I/UP/B) are
+# intentionally not enabled — the gate's job is to catch real bugs
+# like NameError before merge, not enforce style.
+select = ["F"]
+
+[tool.pytest.ini_options]
+# Single Python package root. `python/` on sys.path so every suite resolves
+# fully-qualified imports — `from engine.x import …`, `from kernel.x import …`,
+# `from testing.x import …` — with no per-tree path hacks. Import mode is left
+# at the default (prepend); every test dir is a real package, so dotted module
+# names stay unique.
+pythonpath = ["python"]
+testpaths = ["python"]
+# Belt-and-suspenders against deadlocks (#683): a single hung test FAILs
+# loudly instead of wedging the suite. 300s is an enormous margin for the
+# fast unit suite; opt-in real-LLM tiers can pass `--timeout=0`.
+timeout = 300
+markers = [
+    "integration: tests that call real LLM and read real data (run with -m integration)",
+    "eval: eval-run suites — per-stage regression + chatbot e2e (run with -m eval)",
+]

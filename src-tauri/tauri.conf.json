@@ -1,0 +1,55 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "BaseVault",
+  "identifier": "ai.basevault",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "npm run build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "BaseVault",
+        "width": 1440,
+        "height": 900,
+        "minWidth": 1024,
+        "minHeight": 768,
+        "dragDropEnabled": true
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDUzRTA4MDczNTBGRjVFNjMKUldSalh2OVFjNERnVXhxZmlNTkRwRFRadFRSUytxMWkvODB6WHVydUMyZHB4Tm96b1ZENnpkMW4K",
+      "endpoints": [
+        "https://basevault-releases.s3.amazonaws.com/latest.json"
+      ],
+      "dialog": false
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "createUpdaterArtifacts": false,
+    "resources": {
+      "../python/engine/*.py": "python/engine/",
+      "../python/engine/common/*.py": "python/engine/common/",
+      "../python/engine/phases/*.py": "python/engine/phases/",
+      "../python/kernel/*.py": "python/kernel/",
+      "binaries/python": "python"
+    },
+    "icon": [
+      "icons/icon.png",
+      "icons/icon.icns"
+    ],
+    "macOS": {
+      "bundleVersion": "0",
+      "minimumSystemVersion": "14.0"
+    }
+  }
+}

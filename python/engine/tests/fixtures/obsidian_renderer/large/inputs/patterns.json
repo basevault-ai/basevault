@@ -1,0 +1,173 @@
+{
+  "work": [
+    {
+      "name": "Consistent delivery",
+      "description": "Ships on commitments.",
+      "kind": "behavior",
+      "count": 8,
+      "source_facts": [
+        [
+          0,
+          0.9
+        ],
+        [
+          1,
+          0.85
+        ],
+        [
+          2,
+          0.8
+        ],
+        [
+          3,
+          0.75
+        ],
+        [
+          4,
+          0.7
+        ],
+        [
+          5,
+          0.65
+        ],
+        [
+          6,
+          0.6
+        ],
+        [
+          7,
+          0.55
+        ]
+      ],
+      "hallucinated_ref_count": 0
+    },
+    {
+      "name": "Risk-averse on contracts",
+      "description": "Re-reads everything.",
+      "kind": "constraint",
+      "count": 4,
+      "source_facts": [
+        [
+          0,
+          0.9
+        ],
+        [
+          3,
+          0.6
+        ],
+        [
+          7,
+          0.5
+        ],
+        [
+          99,
+          0.4
+        ]
+      ],
+      "hallucinated_ref_count": 1
+    }
+  ],
+  "health": [
+    {
+      "name": "Daily movement",
+      "description": "Some form of exercise.",
+      "kind": "habit",
+      "count": 12,
+      "source_facts": [
+        [
+          0,
+          0.85
+        ],
+        [
+          1,
+          0.85
+        ],
+        [
+          2,
+          0.85
+        ],
+        [
+          3,
+          0.85
+        ],
+        [
+          4,
+          0.85
+        ],
+        [
+          5,
+          0.85
+        ],
+        [
+          6,
+          0.85
+        ],
+        [
+          7,
+          0.85
+        ],
+        [
+          8,
+          0.85
+        ],
+        [
+          9,
+          0.85
+        ],
+        [
+          10,
+          0.85
+        ],
+        [
+          11,
+          0.85
+        ]
+      ],
+      "hallucinated_ref_count": 0
+    }
+  ],
+  "relationships": [
+    {
+      "name": "Active friend keeper",
+      "description": "Stays in touch.",
+      "kind": "behavior",
+      "count": 8,
+      "source_facts": [
+        [
+          0,
+          0.7
+        ],
+        [
+          1,
+          0.7
+        ],
+        [
+          2,
+          0.7
+        ],
+        [
+          3,
+          0.7
+        ],
+        [
+          4,
+          0.7
+        ],
+        [
+          5,
+          0.7
+        ],
+        [
+          6,
+          0.7
+        ],
+        [
+          7,
+          0.7
+        ]
+      ],
+      "hallucinated_ref_count": 0
+    }
+  ],
+  "empty_topic_skipped": []
+}

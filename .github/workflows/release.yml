@@ -1,0 +1,638 @@
+name: Release
+
+# RELEASE PIPELINE RUNBOOK
+# ========================
+#
+# Two interlocking bugs caused v0.1.8–v0.1.13 to fail:
+#
+# Bug 1: nested-binary signatures (cause of `status: Invalid` from notary).
+# tauri-action signs the OUTER .app bundle but does NOT recursively sign
+# the bundled Python sidecar at Contents/Resources/python/, which contains
+# the python interpreter plus ~140 .dylib/.so files. Those nested binaries
+# ship with ad-hoc signatures, no hardened runtime, no Apple TSA timestamp.
+# Apple notary rejects the submission as Invalid with errors on every
+# nested binary. Locally proven on UUID b4159717-…: Invalid pre-fix.
+#
+# Bug 2: stuck URLSession (cause of `notarytool --wait` hanging 2.5h then
+# erroring -1009). tauri's bundler calls `xcrun notarytool submit --wait`,
+# which keeps a single long-lived URLSession polling Apple's status
+# endpoint. On GH Actions runners the connection goes stale after a few
+# hours and every poll fails with NSURLErrorDomain -1009. notarytool has
+# no recovery; the job hangs until timeout. (Even if it didn't hang, a
+# rejected submission would still ultimately error after Apple finished
+# the in-depth analysis — Bug 1 was the real fix.)
+#
+# Strategy:
+#   - Withhold APPLE_ID/APPLE_PASSWORD/APPLE_TEAM_ID from tauri-action so
+#     the bundler signs the outer .app but skips notarize.
+#   - BEFORE tauri-action, import APPLE_CERTIFICATE into a workflow-
+#     managed keychain that persists past tauri-action's own temp
+#     keychain (which gets dropped on bundler exit, taking the cert with
+#     it).
+#   - AFTER tauri-action, recursively sign every nested binary in the
+#     bundled Python sidecar (deepest leaves first), then re-sign the
+#     main binary, then re-sign the outer .app — all with `--options
+#     runtime --timestamp --sign $APPLE_SIGNING_IDENTITY`. Mirrors the
+#     locally-proven flow in scripts/notarize.sh.
+#   - Notarize+staple ourselves via shell with retry (each `xcrun
+#     notarytool info` call is a fresh process → fresh URLSession → no
+#     stale-keepalive bug from Bug 2).
+#   - Repack .app.tar.gz and DMG from the stapled .app, re-sign with
+#     TAURI_SIGNING_PRIVATE_KEY for the auto-updater.
+#
+# Steps in order:
+#   1. checkout + Node + Rust + npm install
+#   2. Import code signing certificate into a workflow-managed keychain
+#   3. Set version in tauri.conf.json from the git tag
+#   4. tauri-action: build, sign outer .app (no notarize). Uploads
+#      pre-staple .dmg and .app.tar.gz to GitHub Release.
+#   5. Locate built .app
+#   6. Recursively sign nested binaries + re-sign main + re-sign outer
+#      .app (locally-proven fix for Bug 1).
+#   7. Notarize + staple the .app via xcrun notarytool (with retry —
+#      Bug 2 mitigation) and xcrun stapler. Verify with codesign + spctl.
+#   8. Repack .app.tar.gz from stapled .app, regenerate .sig
+#   9. Repack DMG from stapled .app via hdiutil
+#  10. Replace the GitHub Release assets with stapled versions
+#      (gh release upload --clobber)
+#  11. Upload version-pinned stapled artifacts + channel manifest(s)
+#      to S3 (auto-updater). A stable tag writes both latest.json and
+#      latest-rc.json; an rc tag (X.Y.Z-<suffix>) writes only
+#      latest-rc.json, leaving the stable channel untouched.
+#
+# Debugging tips:
+#   - If notarize step returns `status: Invalid`: pull the log via
+#     `xcrun notarytool log <UUID>`. Pre-fix, the log was 140+ entries
+#     about unsigned/ad-hoc-signed nested binaries. If the recursive-sign
+#     step is doing its job, this should not recur.
+#   - If `--clobber` doesn't replace a GH asset: tauri-action renames
+#     the .app.tar.gz to `BaseVault_<version>_aarch64.app.tar.gz` (see
+#     tauri-action's utils.ts:121-125). We mirror that name. If
+#     tauri-action changes its naming, this step will need an update.
+#   - The auto-updater path is S3, not GitHub Releases (see
+#     tauri.conf.json plugins.updater.endpoints).
+#   - Local validation reference: scripts/notarize.sh runs the full
+#     flow against an already-built .app on a developer's Mac.
+
+on:
+  push:
+    tags:
+      - "v*"
+  # Dry-run path: build + sign + notarize + render the provenance summary
+  # without publishing. The two publish steps (GitHub Release, S3) are
+  # guarded to `github.event_name == 'push'`, so a manual dispatch never
+  # uploads an artifact or rewrites an update-channel manifest. Use it to
+  # exercise the full pipeline (and inspect the provenance summary) off a
+  # branch without cutting a release.
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version for the dry-run build (no publish), e.g. 0.0.0-dryrun"
+        required: false
+        default: "0.0.0-dryrun"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    # Pinned to the min-supported macOS (bundle.macOS.minimumSystemVersion in
+    # tauri.conf.json), not macos-latest. Building on a newer macOS lets the
+    # compiled bundle — MLX's libmlx.dylib in particular — pick up libc++/SDK
+    # symbols absent on the floor OS, which dlopen-fails for those users. The
+    # "Verify build runner matches min-macOS floor" step below fails the build
+    # if this pin drifts from the declared floor.
+    runs-on: macos-14
+    timeout-minutes: 90
+    steps:
+      # fetch-depth: 0 pulls the full git history + all tags. The "Set
+      # version from tag" step below counts `v*` tags to derive the
+      # macOS bundle build number — needs all tags, not just the one
+      # the workflow ran on.
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Trust gate: run trust_gates.py against the tag's checked-out ref
+      # BEFORE building, so a release can never be cut from a ref the gate
+      # never inspected — e.g. a `v*` tag pushed on an unmerged or unchecked
+      # commit (release.yml fires on any tag; trust_gates otherwise only runs
+      # in lint.yml on PRs / push:main). Stdlib-only, so it runs on the
+      # runner's python3 with no setup.
+      - name: Trust-surface gates
+        run: python3 scripts/trust_gates.py
+
+      # Keep the runner pin (runs-on above) honest against the single source
+      # of truth for the floor. If someone bumps minimumSystemVersion without
+      # bumping runs-on, fail here rather than ship a bundle built on the wrong
+      # macOS.
+      - name: Verify build runner matches min-macOS floor
+        run: |
+          set -euo pipefail
+          FLOOR=$(python3 -c "import json; print(json.load(open('src-tauri/tauri.conf.json'))['bundle']['macOS']['minimumSystemVersion'])")
+          RUNNER_VERSION=$(sw_vers -productVersion)
+          echo "floor=$FLOOR runner=$RUNNER_VERSION"
+          if [[ "${RUNNER_VERSION%%.*}" != "${FLOOR%%.*}" ]]; then
+            echo "::error::Build runner is macOS $RUNNER_VERSION but the declared floor is $FLOOR. Building on a newer macOS than the floor risks embedding libc++/SDK symbols absent on the min-supported OS. Set runs-on to macos-${FLOOR%%.*} (or update minimumSystemVersion to match the runner)."
+            exit 1
+          fi
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install dependencies
+        run: npm install
+
+      # Materialize the bundled Python sidecar at src-tauri/binaries/
+      # python/ — required by tauri.conf.json's resources mapping
+      # (`binaries/python` -> `python`). The dir is gitignored; without
+      # this step `tauri build` errors out with `resource path
+      # `binaries/python` doesn't exist`. setup-bundled-python.sh is
+      # idempotent (stamp-based), so safe to re-run.
+      - name: Materialize bundled Python sidecar
+        run: ./scripts/setup-bundled-python.sh
+
+      # Import APPLE_CERTIFICATE into a workflow-managed keychain that
+      # persists past tauri-action's bundler. tauri-macos-sign creates
+      # its own temp keychain and deletes it on Drop (see
+      # tauri-macos-sign/src/keychain.rs Drop impl), taking the cert
+      # with it. Our recursive-sign step downstream needs the cert
+      # available after tauri-action exits.
+      - name: Import code signing certificate
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+        run: |
+          set -euo pipefail
+          KEYCHAIN_PATH="$RUNNER_TEMP/release.keychain-db"
+          KEYCHAIN_PASSWORD=$(uuidgen)
+          CERT_PATH="$RUNNER_TEMP/cert.p12"
+          echo "$APPLE_CERTIFICATE" | base64 --decode -o "$CERT_PATH"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security import "$CERT_PATH" -P "$APPLE_CERTIFICATE_PASSWORD" \
+            -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+          # Add to user search list so codesign finds the identity.
+          security list-keychain -d user -s "$KEYCHAIN_PATH" \
+            $(security list-keychain -d user | tr -d '"' | xargs)
+          # Allow apple tools to use the cert without UI prompt.
+          security set-key-partition-list -S apple-tool:,apple: \
+            -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH" >/dev/null
+          rm -f "$CERT_PATH"
+          echo "KEYCHAIN_PATH=$KEYCHAIN_PATH" >> "$GITHUB_ENV"
+          # Sanity check: identity is findable
+          security find-identity -v -p codesigning "$KEYCHAIN_PATH"
+
+      # Single source of truth = src-tauri/Cargo.toml's [package].version.
+      # tauri.conf.json's `version` field has been dropped, so Tauri 2.x
+      # reads CFBundleShortVersionString from Cargo.toml directly.
+      # CARGO_PKG_VERSION (used by app_version() and the
+      # AboutMetadataBuilder's short_version) and the bundle's
+      # CFBundleShortVersionString now match by construction.
+      #
+      # bundleVersion (CFBundleVersion) gets the cumulative `v*` tag count
+      # — a monotonic build number, distinct from the marketing version.
+      # This is the standard macOS pattern (cf. TextEdit's "Version 1.18
+      # (417)"); without a build-number-shaped CFBundleVersion the About
+      # panel would read "Version 0.1.16 (0.1.16)" — visible duplication.
+      # Tauri's tauri.conf.json doesn't support env-var interpolation, so
+      # we sed the placeholder "0" with the live tag count.
+      #
+      # `cargo update -p basevault --precise` keeps Cargo.lock in sync —
+      # cargo refuses to build with a stale lock entry for the workspace
+      # crate.
+      - name: Set version from tag
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          # On a tag push the version is the tag (minus the `v`). On a manual
+          # dry-run dispatch the ref is a branch, not a `v*` tag, so take the
+          # version from the dispatch input instead. Export it to GITHUB_ENV
+          # as the single source of truth — downstream steps fall back to this
+          # rather than re-deriving from the ref, so they stay correct on both
+          # paths.
+          if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
+            VERSION="${INPUT_VERSION}"
+          else
+            VERSION="${GITHUB_REF_NAME#v}"
+          fi
+          echo "VERSION=${VERSION}" >> "$GITHUB_ENV"
+          # Cumulative v* tag count, including the current tag, as the
+          # build number. `git tag --list 'v*'` runs on the checked-out
+          # repo (fetch-depth: 0 above ensures all tags are present).
+          BUILD_NUMBER=$(git tag --list 'v*' | wc -l | tr -d ' ')
+          echo "version=${VERSION} build_number=${BUILD_NUMBER}"
+          sed -i '' -E "s/^version = \".*\"/version = \"${VERSION}\"/" src-tauri/Cargo.toml
+          (cd src-tauri && cargo update -p basevault --precise "${VERSION}")
+          # Replace the bundleVersion placeholder. Targeted match on the
+          # `"bundleVersion": "<current>"` key — the only occurrence in
+          # tauri.conf.json, scoped to bundle.macOS.bundleVersion. The
+          # bundler writes this into Info.plist's CFBundleVersion; AppKit
+          # reads Info.plist directly for the About panel — no Rust
+          # involvement. `[^"]*` matches whatever is currently in the
+          # placeholder, so the substitution still works if the in-source
+          # placeholder ever changes from "0".
+          sed -i '' "s/\"bundleVersion\": \"[^\"]*\"/\"bundleVersion\": \"${BUILD_NUMBER}\"/" src-tauri/tauri.conf.json
+          # Surface the post-sed value in the workflow log so future CI
+          # runs make any silent no-op visible at the source step, not
+          # downstream when the .app is already built.
+          grep '"bundleVersion"' src-tauri/tauri.conf.json
+
+      # Fail loudly if the bundleVersion sed silently no-ops (e.g. the
+      # placeholder string drifts and the regex stops matching). Without
+      # this guard the build still succeeds, the .app ships with
+      # CFBundleVersion=0, and the About panel reads "(0)" — exactly
+      # the symptom this step exists to prevent.
+      - name: Verify bundleVersion was substituted
+        run: |
+          set -euo pipefail
+          if grep -q '"bundleVersion": "0"' src-tauri/tauri.conf.json; then
+            echo "::error::bundleVersion is still \"0\" after the version-set step — the sed in 'Set version from tag' did not substitute. The released .app's About panel would show \"(0)\". Check the sed pattern against the actual JSON shape."
+            exit 1
+          fi
+          echo "bundleVersion substitution OK:"
+          grep '"bundleVersion"' src-tauri/tauri.conf.json
+
+      # Build + sign only. APPLE_ID / APPLE_PASSWORD / APPLE_TEAM_ID are
+      # intentionally omitted so tauri's bundler logs "skipping app
+      # notarization" and exits cleanly. We notarize+staple ourselves below.
+      #
+      # `uploadUpdaterSignatures: false` and `includeUpdaterJson: false`
+      # because tauri.conf.json has `createUpdaterArtifacts: false`, so
+      # no .sig is generated by Tauri. With those flags true, tauri-action
+      # would `statSync` / `readFileSync` a missing .sig and crash. Our
+      # post-staple step regenerates everything anyway and re-uploads to
+      # GH via `gh release upload --clobber`.
+      - name: Build and release (sign only, skip notarize)
+        uses: tauri-apps/tauri-action@84b9d35b5fc46c1e45415bdb6144030364f7ebc5  # action-v0.6.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Bundled Tinfoil key, baked in at compile time by src-tauri/build.rs.
+          # Unset on forks/dry-runs -> build.rs falls back to empty -> keyless.
+          BUNDLED_TINFOIL_KEY: ${{ secrets.BUNDLED_TINFOIL_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+        with:
+          projectPath: .
+          # tauri-action builds AND publishes in one step: a non-empty tagName
+          # makes it create a GitHub Release + tag and upload the (pre-staple)
+          # artifacts. Gate the release inputs on a real tag push so a manual
+          # dry-run dispatch leaves them empty — with no tagName/releaseId
+          # tauri-action skips all uploads and only builds (the .app/.dmg the
+          # downstream notarize+staple+summary steps need are still produced on
+          # disk). Guarding only the later publish steps is not enough; the leak
+          # is here.
+          tagName: ${{ github.event_name == 'push' && github.ref_name || '' }}
+          releaseName: ${{ github.event_name == 'push' && format('BaseVault {0}', github.ref_name) || '' }}
+          releaseBody: ""
+          releaseDraft: false
+          prerelease: false
+          updaterJsonKeepUniversal: true
+          includeUpdaterJson: false
+          uploadUpdaterSignatures: false
+
+      # Resolve the .app path once and export as absolute paths for
+      # downstream steps. Absolute paths matter because some steps cd into
+      # subdirs (e.g. tauri signer needs paths relative to its cwd).
+      - name: Locate built .app
+        id: locate
+        run: |
+          APP_PATH=$(find "$GITHUB_WORKSPACE/src-tauri/target/release/bundle/macos" -maxdepth 1 -name "*.app" -type d | head -1)
+          if [ -z "$APP_PATH" ]; then
+            echo "::error::No .app bundle found under bundle/macos/"
+            ls -la "$GITHUB_WORKSPACE/src-tauri/target/release/bundle/" || true
+            ls -la "$GITHUB_WORKSPACE/src-tauri/target/release/bundle/macos/" || true
+            exit 1
+          fi
+          APP_PARENT=$(dirname "$APP_PATH")
+          APP_NAME=$(basename "$APP_PATH")
+          echo "Found app: $APP_PATH"
+          echo "APP_PATH=$APP_PATH" >> "$GITHUB_ENV"
+          echo "APP_PARENT=$APP_PARENT" >> "$GITHUB_ENV"
+          echo "APP_NAME=$APP_NAME" >> "$GITHUB_ENV"
+
+      # Trust-surface bundle assert — closes #860 (1). The dev-only
+      # eval tree under testing/ carries Fireworks
+      # ModelSpecs + dispatchers + clients (canonical eval-side home
+      # per #839). Those must never ship in the user-facing .app. The
+      # runtime gut + production ↛ testing import gate (gate b of
+      # trust_gates) defend the runtime path; this assert defends
+      # the build artifact against a future tauri.conf.json change
+      # that broadens bundle.resources into a glob that absorbs
+      # testing/. Mirror of the local check in
+      # scripts/manual-release.sh § 2b.
+      #
+      # The package root bundles to Contents/Resources/python/ (engine +
+      # kernel), so the eval tree would land at Resources/python/testing/ —
+      # assert that path doesn't exist.
+      - name: Trust-surface bundle assert (no testing/ in .app)
+        run: |
+          if [ -e "$APP_PATH/Contents/Resources/python/testing" ]; then
+            echo "::error::TRUST GUT VIOLATION: testing/ eval tree shipped in release bundle."
+            ls -R "$APP_PATH/Contents/Resources/python/testing"
+            echo "  The eval tree under python/testing/ must never ship in the .app."
+            echo "  Audit tauri.conf.json bundle.resources for an over-broad glob."
+            exit 1
+          fi
+          echo "bundle clean: no testing/ tree under Contents/Resources/python"
+
+      # Recursively sign every nested binary in the bundled Python
+      # sidecar (Contents/Resources/python/), then re-sign the main
+      # binary, then re-sign the outer .app. tauri-action signs ONLY
+      # the outer .app and Contents/MacOS/basevault — the ~140 nested
+      # .dylib/.so/python-bin files keep their ad-hoc signatures, no
+      # hardened runtime, no Apple TSA timestamp. Apple notary rejects
+      # the bundle as Invalid with one error per nested binary
+      # (locally proven on UUID b4159717-…).
+      #
+      # Order matters: leaves first, then containers (Apple's
+      # inside-out rule). Mirrors scripts/notarize.sh:67-87.
+      - name: Recursive-sign nested binaries (fix nested-signature bug)
+        env:
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+        run: |
+          set -euo pipefail
+          PYTHON_DIR="$APP_PATH/Contents/Resources/python"
+          # Hard-fail if the sidecar is missing — BaseVault always bundles
+          # Python; a missing sidecar means a broken build and a
+          # non-functional release. Don't ship.
+          if [ ! -d "$PYTHON_DIR" ]; then
+            echo "::error::No Python sidecar at $PYTHON_DIR — broken build"
+            ls -la "$APP_PATH/Contents/Resources/" || true
+            exit 1
+          fi
+
+          echo "Recursively signing nested binaries under ${PYTHON_DIR}..."
+          SIGNED_COUNT=0
+          ERR_LOG=$(mktemp)
+          trap 'rm -f "$ERR_LOG"' EXIT
+          while IFS= read -r -d '' f; do
+            if /usr/bin/codesign --force --options runtime --timestamp \
+                --sign "$APPLE_SIGNING_IDENTITY" "$f" 2>>"$ERR_LOG"; then
+              SIGNED_COUNT=$((SIGNED_COUNT + 1))
+            else
+              echo "::error::Failed to sign nested binary: $f"
+              echo "----- codesign stderr -----"
+              cat "$ERR_LOG"
+              exit 1
+            fi
+          done < <(find "$PYTHON_DIR" -type f \
+            \( -name "*.dylib" -o -name "*.so" -o -path "*/python/bin/*" \) \
+            -print0)
+          echo "Signed $SIGNED_COUNT nested binaries."
+          if [ "$SIGNED_COUNT" -lt 50 ]; then
+            echo "::warning::Only $SIGNED_COUNT nested binaries signed; expected ~140 — sidecar may be incomplete"
+          fi
+
+          echo "Re-signing main binary: $APP_PATH/Contents/MacOS/basevault"
+          /usr/bin/codesign --force --options runtime --timestamp \
+            --sign "$APPLE_SIGNING_IDENTITY" \
+            "$APP_PATH/Contents/MacOS/basevault"
+
+          echo "Re-signing outer .app bundle"
+          /usr/bin/codesign --force --options runtime --timestamp \
+            --sign "$APPLE_SIGNING_IDENTITY" "$APP_PATH"
+
+          echo "Verifying signature locally before notary submit..."
+          /usr/bin/codesign --verify --deep --strict --verbose=2 "$APP_PATH"
+
+      # Notarize+staple in shell. Each xcrun call is a fresh process →
+      # fresh URLSession → no stale-keepalive bug. Submission is one
+      # short-lived call; status polling is a shell `until` loop with
+      # per-call retry, so any transient -1009/-1001 is recoverable.
+      - name: Notarize and staple .app
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          set -euo pipefail
+
+          ZIP_PATH=/tmp/BaseVault-notarize.zip
+          # ditto preserves codesign metadata; matches what tauri's bundler does.
+          /usr/bin/ditto -c -k --keepParent --sequesterRsrc "$APP_PATH" "$ZIP_PATH"
+
+          echo "Submitting ${ZIP_PATH} to Apple notary..."
+          SUBMIT_OUT=$(xcrun notarytool submit "$ZIP_PATH" \
+            --apple-id "$APPLE_ID" \
+            --team-id "$APPLE_TEAM_ID" \
+            --password "$APPLE_PASSWORD" \
+            --output-format json)
+          echo "$SUBMIT_OUT"
+          UUID=$(echo "$SUBMIT_OUT" | python3 -c 'import json,sys; print(json.load(sys.stdin)["id"])')
+          echo "Submission UUID: $UUID"
+          echo "NOTARY_UUID=$UUID" >> "$GITHUB_ENV"
+
+          # Poll status. Cap: 60 minutes wall-clock, ~120 polls × 30s.
+          # Network-error retries don't burn the cap; only real status
+          # checks do.
+          DEADLINE=$(( $(date +%s) + 60*60 ))
+          NETWORK_ERRS=0
+          MAX_NETWORK_ERRS=20
+          STATUS=""
+          while [ "$(date +%s)" -lt "$DEADLINE" ]; do
+            INFO_OUT=$(xcrun notarytool info "$UUID" \
+              --apple-id "$APPLE_ID" \
+              --team-id "$APPLE_TEAM_ID" \
+              --password "$APPLE_PASSWORD" \
+              --output-format json 2>/dev/null) || INFO_OUT=""
+            if [ -z "$INFO_OUT" ]; then
+              NETWORK_ERRS=$((NETWORK_ERRS + 1))
+              echo "notarytool info failed (network error #${NETWORK_ERRS}); retrying in 15s..."
+              if [ "$NETWORK_ERRS" -ge "$MAX_NETWORK_ERRS" ]; then
+                echo "::error::Hit $MAX_NETWORK_ERRS consecutive network errors polling notary"
+                exit 1
+              fi
+              sleep 15
+              continue
+            fi
+            NETWORK_ERRS=0
+            STATUS=$(echo "$INFO_OUT" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("status",""))')
+            echo "Status: $STATUS"
+            case "$STATUS" in
+              Accepted) break ;;
+              "Invalid"|"Rejected")
+                echo "::error::Notarization failed with status: $STATUS"
+                xcrun notarytool log "$UUID" \
+                  --apple-id "$APPLE_ID" \
+                  --team-id "$APPLE_TEAM_ID" \
+                  --password "$APPLE_PASSWORD" || true
+                exit 1
+                ;;
+              *) sleep 30 ;;
+            esac
+          done
+
+          if [ "$STATUS" != "Accepted" ]; then
+            echo "::error::Notarization did not reach Accepted within deadline (last status: $STATUS)"
+            xcrun notarytool log "$UUID" \
+              --apple-id "$APPLE_ID" \
+              --team-id "$APPLE_TEAM_ID" \
+              --password "$APPLE_PASSWORD" || true
+            exit 1
+          fi
+
+          echo "Stapling ${APP_PATH}..."
+          xcrun stapler staple -v "$APP_PATH"
+          xcrun stapler validate "$APP_PATH"
+          /usr/bin/codesign --verify --deep --strict --verbose=2 "$APP_PATH"
+          /usr/sbin/spctl --assess --type execute --verbose=2 "$APP_PATH"
+
+      # Repack the updater tarball from the stapled .app and re-sign with
+      # Tauri's minisign key. tauri.conf.json has createUpdaterArtifacts
+      # off, so we generate this from scratch each release.
+      - name: Repack updater bundle (.app.tar.gz)
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          TAR_PATH="$APP_PARENT/$APP_NAME.tar.gz"
+          rm -f "$TAR_PATH" "$TAR_PATH.sig"
+          # COPYFILE_DISABLE=1 prevents AppleDouble (._*) entries from macOS tar.
+          COPYFILE_DISABLE=1 tar -czf "$TAR_PATH" -C "$APP_PARENT" "$APP_NAME"
+          ls -lh "$TAR_PATH"
+          "$GITHUB_WORKSPACE/node_modules/.bin/tauri" signer sign "$TAR_PATH"
+          ls -lh "$TAR_PATH.sig"
+          echo "TAR_PATH=$TAR_PATH" >> "$GITHUB_ENV"
+          echo "SIG_PATH=$TAR_PATH.sig" >> "$GITHUB_ENV"
+
+      - name: Repack DMG with stapled .app
+        run: |
+          set -euo pipefail
+          STAGING=$(mktemp -d)
+          cp -R "$APP_PATH" "$STAGING/"
+          ln -s /Applications "$STAGING/Applications"
+          VERSION="${VERSION:-${GITHUB_REF_NAME#v}}"
+          DMG_OUT="$GITHUB_WORKSPACE/src-tauri/target/release/bundle/dmg/BaseVault_${VERSION}_aarch64.dmg"
+          rm -f "$DMG_OUT"
+          mkdir -p "$(dirname "$DMG_OUT")"
+          hdiutil create \
+            -volname "BaseVault" \
+            -srcfolder "$STAGING" \
+            -ov -format UDZO \
+            "$DMG_OUT"
+          ls -lh "$DMG_OUT"
+
+      # Provenance summary — renders a table on the run's summary page (visible
+      # the moment you open the run URL). Records exactly what shipped: the
+      # version, the source commit, and the SHA-256 of each post-notarization
+      # artifact users actually download. No artifact, no signing feature — an
+      # interim, at-a-glance provenance record. (Native GitHub build-provenance
+      # attestations are unavailable on user-owned private repos, so they wait
+      # for the public-repo cutover; this table is the stand-in until then.)
+      # Runs after notarize+staple+repack so the digests are final.
+      - name: Provenance summary
+        run: |
+          set -euo pipefail
+          VERSION="${VERSION:-${GITHUB_REF_NAME#v}}"
+          DMG_OUT="$GITHUB_WORKSPACE/src-tauri/target/release/bundle/dmg/BaseVault_${VERSION}_aarch64.dmg"
+
+          DMG_SHA=$(shasum -a 256 "$DMG_OUT" | awk '{print $1}')
+          TAR_SHA=$(shasum -a 256 "$TAR_PATH" | awk '{print $1}')
+
+          # tee to both the run's summary page and the build log. The summary
+          # page is the at-a-glance view; the log copy lands in the immutable
+          # run log, so the provenance record survives even if the summary UI
+          # is unavailable and is greppable from `gh run view --log`.
+          {
+            echo "## Release provenance — BaseVault ${VERSION}"
+            echo
+            echo "| Field | Value |"
+            echo "| --- | --- |"
+            echo "| Version | \`${VERSION}\` |"
+            echo "| Commit | \`${GITHUB_SHA}\` |"
+            echo "| \`.dmg\` SHA-256 | \`${DMG_SHA}\` |"
+            echo "| \`.app.tar.gz\` SHA-256 | \`${TAR_SHA}\` |"
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+
+      # Replace tauri-action's pre-staple uploads on GitHub Releases with
+      # the stapled versions, so direct downloaders get the proper bundle.
+      # tauri-action renames .app.tar.gz to BaseVault_<v>_aarch64.app.tar.gz
+      # (see tauri-action utils.ts:121-125). We mirror that naming so
+      # `--clobber` actually replaces the existing GH asset.
+      - name: Update GitHub Release with stapled artifacts
+        # Publish only on a real tag push. A manual dry-run dispatch builds and
+        # records provenance but must not touch the GitHub Release.
+        if: github.event_name == 'push'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          VERSION="${VERSION:-${GITHUB_REF_NAME#v}}"
+          GH_TAR="/tmp/BaseVault_${VERSION}_aarch64.app.tar.gz"
+          GH_SIG="/tmp/BaseVault_${VERSION}_aarch64.app.tar.gz.sig"
+          cp "$TAR_PATH" "$GH_TAR"
+          cp "$SIG_PATH" "$GH_SIG"
+          DMG_OUT="$GITHUB_WORKSPACE/src-tauri/target/release/bundle/dmg/BaseVault_${VERSION}_aarch64.dmg"
+          gh release upload "$GITHUB_REF_NAME" \
+            "$GH_TAR" \
+            "$GH_SIG" \
+            "$DMG_OUT" \
+            --clobber
+
+      - name: Upload artifacts to S3
+        # Publish only on a real tag push. A manual dry-run dispatch must not
+        # upload artifacts or rewrite the latest.json / latest-rc.json update
+        # channel manifests.
+        if: github.event_name == 'push'
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: us-east-1
+        run: |
+          set -euo pipefail
+          VERSION="${VERSION:-${GITHUB_REF_NAME#v}}"
+          SIG=$(cat "$SIG_PATH")
+          DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+          # Version-pinned tarball key (mirrors the .dmg convention). A
+          # shared mutable key would let an rc upload overwrite the
+          # stable binary while the stable manifest still embeds the
+          # old signature — every stable user's update would then fail
+          # signature verification. Pinning the key per version makes
+          # the two channels physically independent.
+          TAR_KEY="BaseVault_${VERSION}_aarch64.app.tar.gz"
+          cat > /tmp/manifest.json << EOF
+          {
+            "version": "${VERSION}",
+            "notes": "",
+            "pub_date": "${DATE}",
+            "platforms": {
+              "darwin-aarch64": {
+                "signature": "${SIG}",
+                "url": "https://basevault-releases.s3.amazonaws.com/${TAR_KEY}"
+              }
+            }
+          }
+          EOF
+
+          aws s3 cp "$GITHUB_WORKSPACE/src-tauri/target/release/bundle/dmg/" s3://basevault-releases/ \
+            --recursive --exclude "*" --include "*.dmg"
+          aws s3 cp "$TAR_PATH" "s3://basevault-releases/${TAR_KEY}"
+          aws s3 cp "$SIG_PATH" "s3://basevault-releases/${TAR_KEY}.sig"
+
+          # Channel routing keyed off the semver pre-release suffix —
+          # no rc tag-string matching on the client. Stable is the
+          # newest build for everyone, so it writes both manifests;
+          # an rc must never reach stable users, so it writes only the
+          # rc manifest. A later stable supersedes an rc by semver
+          # precedence, which the updater compares natively.
+          if [[ "$VERSION" == *-* ]]; then
+            echo "rc release ${VERSION} → latest-rc.json only"
+            aws s3 cp /tmp/manifest.json s3://basevault-releases/latest-rc.json
+          else
+            echo "stable release ${VERSION} → latest.json + latest-rc.json"
+            aws s3 cp /tmp/manifest.json s3://basevault-releases/latest.json
+            aws s3 cp /tmp/manifest.json s3://basevault-releases/latest-rc.json
+          fi

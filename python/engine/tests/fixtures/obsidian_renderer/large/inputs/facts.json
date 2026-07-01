@@ -1,0 +1,1000 @@
+{
+  "work": [
+    {
+      "type": "decision",
+      "summary": "Work fact 0: handles <embedded tag> content",
+      "occurred_at": "2025-01-01",
+      "occurred_at_text": null,
+      "entities": [
+        {
+          "name": "Alice",
+          "type": "person",
+          "role": "subject"
+        }
+      ],
+      "evidence": [
+        {
+          "text": "Work item 0 \u2014 note about <foo> tag and \"quote\" content.",
+          "ref": "diary",
+          "start_char": null,
+          "end_char": null,
+          "file_path": "diary",
+          "file_offset": 0,
+          "file_length": 55,
+          "approximate": false
+        }
+      ],
+      "topics": [
+        "work"
+      ],
+      "tags": [],
+      "confidence": 0.5,
+      "relation_candidate": null
+    },
+    {
+      "type": "fact",
+      "summary": "Work fact 1: handles <embedded tag> content",
+      "occurred_at": "2025-01-02",
+      "occurred_at_text": null,
+      "entities": [
+        {
+          "name": "Alice",
+          "type": "person",
+          "role": "subject"
+        }
+      ],
+      "evidence": [
+        {
+          "text": "Work item 1 \u2014 note about <foo> tag and \"quote\" content.",
+          "ref": "diary",
+          "start_char": null,
+          "end_char": null,
+          "file_path": "diary",
+          "file_offset": 56,
+          "file_length": 55,
+          "approximate": false
+        }
+      ],
+      "topics": [
+        "work"
+      ],
+      "tags": [],
+      "confidence": 0.6,
+      "relation_candidate": null
+    },
+    {
+      "type": "fact",
+      "summary": "Work fact 2: handles <embedded tag> content",
+      "occurred_at": "2025-01-03",
+      "occurred_at_text": null,
+      "entities": [
+        {
+          "name": "Alice",
+          "type": "person",
+          "role": "subject"
+        }
+      ],
+      "evidence": [
+        {
+          "text": "Work item 2 \u2014 note about <foo> tag and \"quote\" content.",
+          "ref": "diary",
+          "start_char": null,
+          "end_char": null,
+          "file_path": "diary",
+          "file_offset": 112,
+          "file_length": 55,
+          "approximate": false
+        }
+      ],
+      "topics": [
+        "work"
+      ],
+      "tags": [],
+      "confidence": 0.7,
+      "relation_candidate": null
+    },
+    {
+      "type": "decision",
+      "summary": "Work fact 3: handles <embedded tag> content",
+      "occurred_at": "2025-01-04",
+      "occurred_at_text": null,
+      "entities": [
+        {
+          "name": "Alice",
+          "type": "person",
+          "role": "subject"
+        }
+      ],
+      "evidence": [
+        {
+          "text": "Work item 3 \u2014 note about <foo> tag and \"quote\" content.",
+          "ref": "diary",
+          "start_char": null,
+          "end_char": null,
+          "file_path": "diary",
+          "file_offset": 168,
+          "file_length": 55,
+          "approximate": false
+        }
+      ],
+      "topics": [
+        "work"
+      ],
+      "tags": [],
+      "confidence": 0.8,
+      "relation_candidate": null
+    },
+    {
+      "type": "fact",
+      "summary": "Work fact 4: handles <embedded tag> content",
+      "occurred_at": "2025-01-05",
+      "occurred_at_text": null,
+      "entities": [
+        {
+          "name": "Alice",
+          "type": "person",
+          "role": "subject"
+        }
+      ],
+      "evidence": [
+        {
+          "text": "Work item 4 \u2014 note about <foo> tag and \"quote\" content.",
+          "ref": "diary",
+          "start_char": null,
+          "end_char": null,
+          "file_path": "diary",
+          "file_offset": 224,
+          "file_length": 55,
+          "approximate": false
+        }
+      ],
+      "topics": [
+        "work"
+      ],
+      "tags": [],
+      "confidence": 0.9,
+      "relation_candidate": null
+    },
+    {
+      "type": "fact",
+      "summary": "Work fact 5: handles <embedded tag> content",
+      "occurred_at": "2025-01-06",
+      "occurred_at_text": null,
+      "entities": [
+        {
+          "name": "Alice",
+          "type": "person",
+          "role": "subject"
+        }
+      ],
+      "evidence": [
+        {
+          "text": "Work item 5 \u2014 note about <foo> tag and \"quote\" content.",
+          "ref": "diary",
+          "start_char": null,
+          "end_char": null,
+          "file_path": "diary",
+          "file_offset": 280,
+          "file_length": 55,
+          "approximate": false
+        }
+      ],
+      "topics": [
+        "work"
+      ],
+      "tags": [],
+      "confidence": 0.5,
+      "relation_candidate": null
+    },
+    {
+      "type": "decision",
+      "summary": "Work fact 6: handles <embedded tag> content",
+      "occurred_at": "2025-01-07",
+      "occurred_at_text": null,
+      "entities": [
+        {
+          "name": "Alice",
+          "type": "person",
+          "role": "subject"
+        }
+      ],
+      "evidence": [
+        {
+          "text": "Work item 6 \u2014 note about <foo> tag and \"quote\" content.",
+          "ref": "diary",
+          "start_char": null,
+          "end_char": null,
+          "file_path": "diary",
+          "file_offset": 336,
+          "file_length": 55,
+          "approximate": false
+        }
+      ],
+      "topics": [
+        "work"
+      ],
+      "tags": [],
+      "confidence": 0.6,
+      "relation_candidate": null
+    },
+    {
+      "type": "fact",
+      "summary": "Work fact 7: handles <embedded tag> content",
+      "occurred_at": "2025-01-08",
+      "occurred_at_text": null,
+      "entities": [
+        {
+          "name": "Alice",
+          "type": "person",
+          "role": "subject"
+        }
+      ],
+      "evidence": [
+        {
+          "text": "Work item 7 \u2014 note about <foo> tag and \"quote\" content.",
+          "ref": "diary",
+          "start_char": null,
+          "end_char": null,
+          "file_path": "diary",
+          "file_offset": 392,
+          "file_length": 55,
+          "approximate": false
+        }
+      ],
+      "topics": [
+        "work"
+      ],
+      "tags": [],
+      "confidence": 0.7,
+      "relation_candidate": null
+    },
+    {
+      "type": "fact",
+      "summary": "Work fact 8: handles <embedded tag> content",
+      "occurred_at": "2025-01-09",
+      "occurred_at_text": null,
+      "entities": [
+        {
+          "name": "Alice",
+          "type": "person",
+          "role": "subject"
+        }
+      ],
+      "evidence": [
+        {
+          "text": "Work item 8 \u2014 note about <foo> tag and \"quote\" content.",
+          "ref": "diary",
+          "start_char": null,
+          "end_char": null,
+          "file_path": "diary",
+          "file_offset": 448,
+          "file_length": 55,
+          "approximate": false
+        }
+      ],
+      "topics": [
+        "work"
+      ],
+      "tags": [],
+      "confidence": 0.8,
+      "relation_candidate": null
+    },
+    {
+      "type": "decision",
+      "summary": "Work fact 9: handles <embedded tag> content",
+      "occurred_at": "2025-01-10",
+      "occurred_at_text": null,
+      "entities": [
+        {
+          "name": "Alice",
+          "type": "person",
+          "role": "subject"
+        }
+      ],
+      "evidence": [
+        {
+          "text": "Work item 9 \u2014 note about <foo> tag and \"quote\" content.",
+          "ref": "diary",
+          "start_char": null,
+          "end_char": null,
+          "file_path": "diary",
+          "file_offset": 504,
+          "file_length": 55,
+          "approximate": false
+        }
+      ],
+      "topics": [
+        "work"
+      ],
+      "tags": [],
+      "confidence": 0.9,
+      "relation_candidate": null
+    },
+    {
+      "type": "fact",
+      "summary": "Work fact 10: handles <embedded tag> content",
+      "occurred_at": "2025-01-11",
+      "occurred_at_text": null,
+      "entities": [
+        {
+          "name": "Alice",
+          "type": "person",
+          "role": "subject"
+        }
+      ],
+      "evidence": [
+        {
+          "text": "Work item 10 \u2014 note about <foo> tag and \"quote\" content.",
+          "ref": "diary",
+          "start_char": null,
+          "end_char": null,
+          "file_path": "diary",
+          "file_offset": 560,
+          "file_length": 56,
+          "approximate": false
+        }
+      ],
+      "topics": [
+        "work"
+      ],
+      "tags": [],
+      "confidence": 0.5,
+      "relation_candidate": null
+    },
+    {
+      "type": "fact",
+      "summary": "Work fact 11: handles <embedded tag> content",
+      "occurred_at": "2025-01-12",
+      "occurred_at_text": null,
+      "entities": [
+        {
+          "name": "Alice",
+          "type": "person",
+          "role": "subject"
+        }
+      ],
+      "evidence": [
+        {
+          "text": "Work item 11 \u2014 note about <foo> tag and \"quote\" content.",
+          "ref": "diary",
+          "start_char": null,
+          "end_char": null,
+          "file_path": "diary",
+          "file_offset": 617,
+          "file_length": 56,
+          "approximate": false
+        }
+      ],
+      "topics": [
+        "work"
+      ],
+      "tags": [],
+      "confidence": 0.6,
+      "relation_candidate": null
+    }
+  ],
+  "health": [
+    {
+      "type": "event",
+      "summary": "Health observation 0 with backslash \\ and quote \" inside",
+      "occurred_at": null,
+      "occurred_at_text": null,
+      "entities": [
+        {
+          "name": "Alice",
+          "type": "person",
+          "role": "subject"
+        }
+      ],
+      "evidence": [
+        {
+          "text": "Health log 0: ran or walked, felt 'fine' afterwards.",
+          "ref": "diary",
+          "start_char": null,
+          "end_char": null,
+          "file_path": "diary",
+          "file_offset": 674,
+          "file_length": 52,
+          "approximate": false
+        }
+      ],
+      "topics": [
+        "health"
+      ],
+      "tags": [],
+      "confidence": 0.7,
+      "relation_candidate": null
+    },
+    {
+      "type": "emotion",
+      "summary": "Health observation 1 with backslash \\ and quote \" inside",
+      "occurred_at": null,
+      "occurred_at_text": null,
+      "entities": [
+        {
+          "name": "Alice",
+          "type": "person",
+          "role": "subject"
+        }
+      ],
+      "evidence": [
+        {
+          "text": "Health log 1: ran or walked, felt 'fine' afterwards.",
+          "ref": "diary",
+          "start_char": null,
+          "end_char": null,
+          "file_path": "diary",
+          "file_offset": 727,
+          "file_length": 52,
+          "approximate": false
+        }
+      ],
+      "topics": [
+        "health"
+      ],
+      "tags": [],
+      "confidence": 0.7,
+      "relation_candidate": null
+    },
+    {
+      "type": "event",
+      "summary": "Health observation 2 with backslash \\ and quote \" inside",
+      "occurred_at": null,
+      "occurred_at_text": null,
+      "entities": [
+        {
+          "name": "Alice",
+          "type": "person",
+          "role": "subject"
+        }
+      ],
+      "evidence": [
+        {
+          "text": "Health log 2: ran or walked, felt 'fine' afterwards.",
+          "ref": "diary",
+          "start_char": null,
+          "end_char": null,
+          "file_path": "diary",
+          "file_offset": 780,
+          "file_length": 52,
+          "approximate": false
+        }
+      ],
+      "topics": [
+        "health"
+      ],
+      "tags": [],
+      "confidence": 0.7,
+      "relation_candidate": null
+    },
+    {
+      "type": "emotion",
+      "summary": "Health observation 3 with backslash \\ and quote \" inside",
+      "occurred_at": null,
+      "occurred_at_text": null,
+      "entities": [
+        {
+          "name": "Alice",
+          "type": "person",
+          "role": "subject"
+        }
+      ],
+      "evidence": [
+        {
+          "text": "Health log 3: ran or walked, felt 'fine' afterwards.",
+          "ref": "diary",
+          "start_char": null,
+          "end_char": null,
+          "file_path": "diary",
+          "file_offset": 833,
+          "file_length": 52,
+          "approximate": false
+        }
+      ],
+      "topics": [
+        "health"
+      ],
+      "tags": [],
+      "confidence": 0.7,
+      "relation_candidate": null
+    },
+    {
+      "type": "event",
+      "summary": "Health observation 4 with backslash \\ and quote \" inside",
+      "occurred_at": null,
+      "occurred_at_text": null,
+      "entities": [
+        {
+          "name": "Alice",
+          "type": "person",
+          "role": "subject"
+        }
+      ],
+      "evidence": [
+        {
+          "text": "Health log 4: ran or walked, felt 'fine' afterwards.",
+          "ref": "diary",
+          "start_char": null,
+          "end_char": null,
+          "file_path": "diary",
+          "file_offset": 886,
+          "file_length": 52,
+          "approximate": false
+        }
+      ],
+      "topics": [
+        "health"
+      ],
+      "tags": [],
+      "confidence": 0.7,
+      "relation_candidate": null
+    },
+    {
+      "type": "emotion",
+      "summary": "Health observation 5 with backslash \\ and quote \" inside",
+      "occurred_at": null,
+      "occurred_at_text": null,
+      "entities": [
+        {
+          "name": "Alice",
+          "type": "person",
+          "role": "subject"
+        }
+      ],
+      "evidence": [
+        {
+          "text": "Health log 5: ran or walked, felt 'fine' afterwards.",
+          "ref": "diary",
+          "start_char": null,
+          "end_char": null,
+          "file_path": "diary",
+          "file_offset": 939,
+          "file_length": 52,
+          "approximate": false
+        }
+      ],
+      "topics": [
+        "health"
+      ],
+      "tags": [],
+      "confidence": 0.7,
+      "relation_candidate": null
+    },
+    {
+      "type": "event",
+      "summary": "Health observation 6 with backslash \\ and quote \" inside",
+      "occurred_at": null,
+      "occurred_at_text": null,
+      "entities": [
+        {
+          "name": "Alice",
+          "type": "person",
+          "role": "subject"
+        }
+      ],
+      "evidence": [
+        {
+          "text": "Health log 6: ran or walked, felt 'fine' afterwards.",
+          "ref": "diary",
+          "start_char": null,
+          "end_char": null,
+          "file_path": "diary",
+          "file_offset": 992,
+          "file_length": 52,
+          "approximate": false
+        }
+      ],
+      "topics": [
+        "health"
+      ],
+      "tags": [],
+      "confidence": 0.7,
+      "relation_candidate": null
+    },
+    {
+      "type": "emotion",
+      "summary": "Health observation 7 with backslash \\ and quote \" inside",
+      "occurred_at": null,
+      "occurred_at_text": null,
+      "entities": [
+        {
+          "name": "Alice",
+          "type": "person",
+          "role": "subject"
+        }
+      ],
+      "evidence": [
+        {
+          "text": "Health log 7: ran or walked, felt 'fine' afterwards.",
+          "ref": "diary",
+          "start_char": null,
+          "end_char": null,
+          "file_path": "diary",
+          "file_offset": 1045,
+          "file_length": 52,
+          "approximate": false
+        }
+      ],
+      "topics": [
+        "health"
+      ],
+      "tags": [],
+      "confidence": 0.7,
+      "relation_candidate": null
+    },
+    {
+      "type": "event",
+      "summary": "Health observation 8 with backslash \\ and quote \" inside",
+      "occurred_at": null,
+      "occurred_at_text": null,
+      "entities": [
+        {
+          "name": "Alice",
+          "type": "person",
+          "role": "subject"
+        }
+      ],
+      "evidence": [
+        {
+          "text": "Health log 8: ran or walked, felt 'fine' afterwards.",
+          "ref": "diary",
+          "start_char": null,
+          "end_char": null,
+          "file_path": "diary",
+          "file_offset": 1098,
+          "file_length": 52,
+          "approximate": false
+        }
+      ],
+      "topics": [
+        "health"
+      ],
+      "tags": [],
+      "confidence": 0.7,
+      "relation_candidate": null
+    },
+    {
+      "type": "emotion",
+      "summary": "Health observation 9 with backslash \\ and quote \" inside",
+      "occurred_at": null,
+      "occurred_at_text": null,
+      "entities": [
+        {
+          "name": "Alice",
+          "type": "person",
+          "role": "subject"
+        }
+      ],
+      "evidence": [
+        {
+          "text": "Health log 9: ran or walked, felt 'fine' afterwards.",
+          "ref": "diary",
+          "start_char": null,
+          "end_char": null,
+          "file_path": "diary",
+          "file_offset": 1151,
+          "file_length": 52,
+          "approximate": false
+        }
+      ],
+      "topics": [
+        "health"
+      ],
+      "tags": [],
+      "confidence": 0.7,
+      "relation_candidate": null
+    },
+    {
+      "type": "event",
+      "summary": "Health observation 10 with backslash \\ and quote \" inside",
+      "occurred_at": null,
+      "occurred_at_text": null,
+      "entities": [
+        {
+          "name": "Alice",
+          "type": "person",
+          "role": "subject"
+        }
+      ],
+      "evidence": [
+        {
+          "text": "Health log 10: ran or walked, felt 'fine' afterwards.",
+          "ref": "diary",
+          "start_char": null,
+          "end_char": null,
+          "file_path": "diary",
+          "file_offset": 1204,
+          "file_length": 53,
+          "approximate": false
+        }
+      ],
+      "topics": [
+        "health"
+      ],
+      "tags": [],
+      "confidence": 0.7,
+      "relation_candidate": null
+    },
+    {
+      "type": "emotion",
+      "summary": "Health observation 11 with backslash \\ and quote \" inside",
+      "occurred_at": null,
+      "occurred_at_text": null,
+      "entities": [
+        {
+          "name": "Alice",
+          "type": "person",
+          "role": "subject"
+        }
+      ],
+      "evidence": [
+        {
+          "text": "Health log 11: ran or walked, felt 'fine' afterwards.",
+          "ref": "diary",
+          "start_char": null,
+          "end_char": null,
+          "file_path": "diary",
+          "file_offset": 1258,
+          "file_length": 53,
+          "approximate": false
+        }
+      ],
+      "topics": [
+        "health"
+      ],
+      "tags": [],
+      "confidence": 0.7,
+      "relation_candidate": null
+    }
+  ],
+  "relationships": [
+    {
+      "type": "fact",
+      "summary": "Relationship event 0",
+      "occurred_at": null,
+      "occurred_at_text": null,
+      "entities": [
+        {
+          "name": "Alice",
+          "type": "person",
+          "role": "subject"
+        }
+      ],
+      "evidence": [
+        {
+          "text": "Met with friend 0; discussed plans.",
+          "ref": "diary",
+          "start_char": null,
+          "end_char": null,
+          "file_path": "diary",
+          "file_offset": 1312,
+          "file_length": 35,
+          "approximate": true
+        }
+      ],
+      "topics": [
+        "relationships"
+      ],
+      "tags": [],
+      "confidence": 0.8,
+      "relation_candidate": null
+    },
+    {
+      "type": "fact",
+      "summary": "Relationship event 1",
+      "occurred_at": null,
+      "occurred_at_text": null,
+      "entities": [
+        {
+          "name": "Alice",
+          "type": "person",
+          "role": "subject"
+        }
+      ],
+      "evidence": [
+        {
+          "text": "Met with friend 1; discussed plans.",
+          "ref": "diary",
+          "start_char": null,
+          "end_char": null,
+          "file_path": "diary",
+          "file_offset": 1348,
+          "file_length": 35,
+          "approximate": false
+        }
+      ],
+      "topics": [
+        "relationships"
+      ],
+      "tags": [],
+      "confidence": 0.8,
+      "relation_candidate": null
+    },
+    {
+      "type": "fact",
+      "summary": "Relationship event 2",
+      "occurred_at": null,
+      "occurred_at_text": null,
+      "entities": [
+        {
+          "name": "Alice",
+          "type": "person",
+          "role": "subject"
+        }
+      ],
+      "evidence": [
+        {
+          "text": "Met with friend 2; discussed plans.",
+          "ref": "diary",
+          "start_char": null,
+          "end_char": null,
+          "file_path": "diary",
+          "file_offset": 1384,
+          "file_length": 35,
+          "approximate": false
+        }
+      ],
+      "topics": [
+        "relationships"
+      ],
+      "tags": [],
+      "confidence": 0.8,
+      "relation_candidate": null
+    },
+    {
+      "type": "fact",
+      "summary": "Relationship event 3",
+      "occurred_at": null,
+      "occurred_at_text": null,
+      "entities": [
+        {
+          "name": "Alice",
+          "type": "person",
+          "role": "subject"
+        }
+      ],
+      "evidence": [
+        {
+          "text": "Met with friend 0; discussed plans.",
+          "ref": "diary",
+          "start_char": null,
+          "end_char": null,
+          "file_path": "diary",
+          "file_offset": 1420,
+          "file_length": 35,
+          "approximate": false
+        }
+      ],
+      "topics": [
+        "relationships"
+      ],
+      "tags": [],
+      "confidence": 0.8,
+      "relation_candidate": null
+    },
+    {
+      "type": "fact",
+      "summary": "Relationship event 4",
+      "occurred_at": null,
+      "occurred_at_text": null,
+      "entities": [
+        {
+          "name": "Alice",
+          "type": "person",
+          "role": "subject"
+        }
+      ],
+      "evidence": [
+        {
+          "text": "Met with friend 1; discussed plans.",
+          "ref": "diary",
+          "start_char": null,
+          "end_char": null,
+          "file_path": "diary",
+          "file_offset": 1456,
+          "file_length": 35,
+          "approximate": false
+        }
+      ],
+      "topics": [
+        "relationships"
+      ],
+      "tags": [],
+      "confidence": 0.8,
+      "relation_candidate": null
+    },
+    {
+      "type": "fact",
+      "summary": "Relationship event 5",
+      "occurred_at": null,
+      "occurred_at_text": null,
+      "entities": [
+        {
+          "name": "Alice",
+          "type": "person",
+          "role": "subject"
+        }
+      ],
+      "evidence": [
+        {
+          "text": "Met with friend 2; discussed plans.",
+          "ref": "diary",
+          "start_char": null,
+          "end_char": null,
+          "file_path": "diary",
+          "file_offset": 1492,
+          "file_length": 35,
+          "approximate": true
+        }
+      ],
+      "topics": [
+        "relationships"
+      ],
+      "tags": [],
+      "confidence": 0.8,
+      "relation_candidate": null
+    },
+    {
+      "type": "fact",
+      "summary": "Relationship event 6",
+      "occurred_at": null,
+      "occurred_at_text": null,
+      "entities": [
+        {
+          "name": "Alice",
+          "type": "person",
+          "role": "subject"
+        }
+      ],
+      "evidence": [
+        {
+          "text": "Met with friend 0; discussed plans.",
+          "ref": "diary",
+          "start_char": null,
+          "end_char": null,
+          "file_path": "diary",
+          "file_offset": 1528,
+          "file_length": 35,
+          "approximate": false
+        }
+      ],
+      "topics": [
+        "relationships"
+      ],
+      "tags": [],
+      "confidence": 0.8,
+      "relation_candidate": null
+    },
+    {
+      "type": "fact",
+      "summary": "Relationship event 7",
+      "occurred_at": null,
+      "occurred_at_text": null,
+      "entities": [
+        {
+          "name": "Alice",
+          "type": "person",
+          "role": "subject"
+        }
+      ],
+      "evidence": [
+        {
+          "text": "Met with friend 1; discussed plans.",
+          "ref": "diary",
+          "start_char": null,
+          "end_char": null,
+          "file_path": "diary",
+          "file_offset": 1564,
+          "file_length": 35,
+          "approximate": false
+        }
+      ],
+      "topics": [
+        "relationships"
+      ],
+      "tags": [],
+      "confidence": 0.8,
+      "relation_candidate": null
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+#
+# pre-push hook — name-leak guard.
+#
+# Runs the name-leak test before every push so a maintainer can't push a
+# forbidden personal name into tracked source. The names stay 100% local: the
+# test reads data/leak_guard_names.txt (the local-only data repo). If the list
+# isn't present (no symlink / fresh clone) the test skips and this hook is a
+# clean no-op — it never blocks a push for someone without the list.
+#
+# Install (one line, from the repo root):
+#     git config core.hooksPath scripts/hooks
+#
+# Uninstall:  git config --unset core.hooksPath
+#
+set -euo pipefail
+
+ROOT="$(git rev-parse --show-toplevel)"
+cd "$ROOT"
+
+# Find a python that has pytest, without requiring an activated venv. Checks
+# the active venv, then the project venv at common locations relative to the
+# repo root (a worktree is two levels under the hub: ../../.venv; the main
+# checkout is one: ../.venv), then PATH. If none has pytest (e.g. pushing from
+# a machine without the test deps), warn loudly and let the push through —
+# the hook is a safety net, not a wall.
+PY=""
+for cand in \
+    "${VIRTUAL_ENV:+$VIRTUAL_ENV/bin/python}" \
+    "$ROOT/.venv/bin/python" \
+    "$ROOT/../.venv/bin/python" \
+    "$ROOT/../../.venv/bin/python" \
+    "$(command -v python3 || true)" \
+    "$(command -v python || true)"; do
+    if [ -n "$cand" ] && [ -x "$cand" ] && "$cand" -c "import pytest" >/dev/null 2>&1; then
+        PY="$cand"
+        break
+    fi
+done
+
+if [ -z "$PY" ]; then
+    echo "pre-push: no python with pytest found; name-leak guard NOT run." >&2
+    echo "          activate the project venv (or pip install pytest) to enable it." >&2
+    exit 0
+fi
+
+exec "$PY" -m pytest \
+    python/engine/tests/test_name_leak_guard.py::test_no_forbidden_name_in_tracked_source \
+    -q

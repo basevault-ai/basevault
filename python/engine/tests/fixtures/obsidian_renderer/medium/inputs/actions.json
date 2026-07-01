@@ -1,0 +1,60 @@
+{
+  "actions": [
+    {
+      "recommendation": "Stack a 5-min meditation onto the morning run",
+      "kind": "protocol",
+      "objective": "Resilient morning routine",
+      "why": "Discipline already stacks; meditation extends the chain.",
+      "immediate_action": "Tomorrow: meditate 5 min after the run.",
+      "habit": "Daily 5-min meditation post-run.",
+      "success_metric": "14 days without skipping.",
+      "horizon": "medium",
+      "review_date": "2025-07-01",
+      "regret_reduction": 0.5,
+      "leverage": 0.6,
+      "consequence": 0.5,
+      "generativity": 0.6,
+      "decisiveness": 0.7,
+      "time_to_feedback": 0.7,
+      "constraint_fit": 0.8,
+      "confidence": 0.9,
+      "score": 0.5925,
+      "source_insights": [
+        [
+          "cross_domain",
+          0,
+          0.9
+        ]
+      ],
+      "hallucinated_ref_count": 0
+    },
+    {
+      "recommendation": "Add cycling as a backup recovery activity",
+      "kind": "experiment",
+      "objective": "Two-track stress release",
+      "why": "Hedging the running channel reduces fragility.",
+      "immediate_action": "Borrow a bike this weekend; ride 30 min.",
+      "habit": "One cycling session weekly.",
+      "success_metric": "3 sessions in 4 weeks.",
+      "horizon": "short",
+      "review_date": "2025-05-15",
+      "regret_reduction": 0.7,
+      "leverage": 0.4,
+      "consequence": 0.5,
+      "generativity": 0.4,
+      "decisiveness": 0.6,
+      "time_to_feedback": 0.8,
+      "constraint_fit": 0.6,
+      "confidence": 0.8,
+      "score": 0.555,
+      "source_insights": [
+        [
+          "critical",
+          0,
+          0.85
+        ]
+      ],
+      "hallucinated_ref_count": 0
+    }
+  ]
+}

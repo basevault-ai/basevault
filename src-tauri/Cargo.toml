@@ -1,0 +1,61 @@
+[package]
+name = "basevault"
+version = "0.1.0"
+description = "BaseVault — private data pipeline"
+authors = ["BaseVault"]
+license = "Apache-2.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+# The `_lib` suffix may seem redundant but it is necessary
+# to make the lib name unique and wouldn't conflict with the bin name.
+# This seems to be only an issue on Windows, see https://github.com/rust-lang/cargo/issues/8519
+name = "basevault_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-opener = "2"
+serde = { version = "1", features = ["derive"] }
+# `preserve_order` keeps Value::Object in JSON insertion order (IndexMap
+# instead of the default BTreeMap). The outcome classifier reads the
+# per-call `output` dict positionally — the first integer leaf is the
+# stage's primary entry count — so insertion order must survive the
+# round-trip through llm-calls.jsonl. Without this, keys re-sort
+# alphabetically and the primary count can no longer be identified.
+serde_json = { version = "1", features = ["preserve_order"] }
+tauri-plugin-dialog = "2.6.0"
+tauri-plugin-updater = "2.10.0"
+tauri-plugin-log = "2"
+tauri-plugin-window-state = "2"
+log = "0.4"
+libc = "0.2"
+
+# Cocoa bindings, used only by the macOS-specific export folder picker
+# in `pick_export_dir`. tauri-plugin-dialog wraps `rfd`, which doesn't
+# expose `NSOpenPanel.setPrompt:` — so the Open/Save action button stays
+# at the system default ("Open"). To present an "Export" button we drive
+# NSOpenPanel directly via objc2.
+[target.'cfg(target_os = "macos")'.dependencies]
+objc2 = "0.6"
+objc2-app-kit = { version = "0.3", default-features = false, features = [
+    "NSOpenPanel",
+    "NSPanel",
+    "NSResponder",
+    "NSSavePanel",
+    "NSWindow",
+] }
+objc2-foundation = { version = "0.3", default-features = false, features = [
+    "NSProcessInfo",
+    "NSString",
+    "NSURL",
+] }
+
+[dev-dependencies]
+tempfile = "3"
+

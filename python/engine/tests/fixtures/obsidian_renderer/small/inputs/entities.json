@@ -1,0 +1,28 @@
+{
+  "subject": {
+    "canonical_id": "alice",
+    "display": "Alice",
+    "source": "argmax"
+  },
+  "entities": [
+    {
+      "canonical_id": "alice",
+      "canonical_name": "Alice",
+      "entity_type": "person",
+      "aliases": [],
+      "role": "subject",
+      "description": "The author.",
+      "mention_count": 1,
+      "topics": [
+        "work"
+      ],
+      "evidence_fact_refs": [
+        [
+          "work",
+          0
+        ]
+      ]
+    }
+  ],
+  "relations": []
+}

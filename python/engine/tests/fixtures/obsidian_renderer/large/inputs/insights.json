@@ -1,0 +1,77 @@
+{
+  "cross_domain": [
+    {
+      "name": "Discipline as identity glue",
+      "description": "Routines bind the day across domains.",
+      "mechanism": "Habit-stacks compound.",
+      "implication": "High leverage on small additions.",
+      "domains": [
+        "work",
+        "health"
+      ],
+      "proposed_actions": [
+        "add a 2-min stretch to morning"
+      ],
+      "source_patterns": [
+        [
+          "work",
+          0,
+          0.9
+        ],
+        [
+          "health",
+          0,
+          0.85
+        ],
+        [
+          "nonexistent_topic",
+          5,
+          0.3
+        ]
+      ],
+      "hallucinated_ref_count": 0
+    },
+    {
+      "name": "Connection ledger",
+      "description": "Relationships maintained by small ops.",
+      "mechanism": "Cadence > intensity.",
+      "implication": "Calendarable.",
+      "domains": [
+        "relationships"
+      ],
+      "proposed_actions": [
+        "Calendar weekly check-in"
+      ],
+      "source_patterns": [
+        [
+          "relationships",
+          0,
+          0.8
+        ]
+      ],
+      "hallucinated_ref_count": 0
+    }
+  ],
+  "critical": [
+    {
+      "name": "Contract anxiety drag",
+      "description": "Re-reading contracts saps an outsized share.",
+      "mechanism": "Avoidance loop.",
+      "implication": "Time/energy lost is real.",
+      "domains": [
+        "work"
+      ],
+      "proposed_actions": [
+        "set a hard timer on contract review"
+      ],
+      "source_patterns": [
+        [
+          "work",
+          1,
+          0.7
+        ]
+      ],
+      "hallucinated_ref_count": 0
+    }
+  ]
+}

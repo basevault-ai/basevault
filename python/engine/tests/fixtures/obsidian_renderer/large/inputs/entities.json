@@ -1,0 +1,283 @@
+{
+  "subject": {
+    "canonical_id": "alice",
+    "display": "Alice",
+    "source": "argmax"
+  },
+  "entities": [
+    {
+      "canonical_id": "alice",
+      "canonical_name": "Alice",
+      "entity_type": "person",
+      "aliases": [
+        "A."
+      ],
+      "role": "subject",
+      "description": "The diarist.",
+      "mention_count": 32,
+      "topics": [
+        "work",
+        "health",
+        "relationships"
+      ],
+      "evidence_fact_refs": [
+        [
+          "work",
+          0
+        ],
+        [
+          "work",
+          1
+        ],
+        [
+          "work",
+          2
+        ],
+        [
+          "work",
+          3
+        ],
+        [
+          "work",
+          4
+        ],
+        [
+          "work",
+          5
+        ],
+        [
+          "work",
+          6
+        ],
+        [
+          "work",
+          7
+        ],
+        [
+          "work",
+          8
+        ],
+        [
+          "work",
+          9
+        ],
+        [
+          "work",
+          10
+        ],
+        [
+          "work",
+          11
+        ],
+        [
+          "health",
+          0
+        ],
+        [
+          "health",
+          1
+        ],
+        [
+          "health",
+          2
+        ],
+        [
+          "health",
+          3
+        ],
+        [
+          "health",
+          4
+        ],
+        [
+          "health",
+          5
+        ],
+        [
+          "health",
+          6
+        ],
+        [
+          "health",
+          7
+        ],
+        [
+          "health",
+          8
+        ],
+        [
+          "health",
+          9
+        ],
+        [
+          "health",
+          10
+        ],
+        [
+          "health",
+          11
+        ],
+        [
+          "relationships",
+          0
+        ],
+        [
+          "relationships",
+          1
+        ],
+        [
+          "relationships",
+          2
+        ],
+        [
+          "relationships",
+          3
+        ],
+        [
+          "relationships",
+          4
+        ],
+        [
+          "relationships",
+          5
+        ],
+        [
+          "relationships",
+          6
+        ],
+        [
+          "relationships",
+          7
+        ]
+      ]
+    },
+    {
+      "canonical_id": "bob",
+      "canonical_name": "Bob",
+      "entity_type": "person",
+      "aliases": [],
+      "role": "friend",
+      "description": "A close friend.",
+      "mention_count": 4,
+      "topics": [
+        "relationships"
+      ],
+      "evidence_fact_refs": [
+        [
+          "relationships",
+          0
+        ],
+        [
+          "relationships",
+          2
+        ],
+        [
+          "relationships",
+          4
+        ],
+        [
+          "relationships",
+          6
+        ]
+      ]
+    },
+    {
+      "canonical_id": "carol",
+      "canonical_name": "Carol",
+      "entity_type": "person",
+      "aliases": [],
+      "role": "colleague",
+      "description": "A colleague at work.",
+      "mention_count": 3,
+      "topics": [
+        "work"
+      ],
+      "evidence_fact_refs": [
+        [
+          "work",
+          0
+        ],
+        [
+          "work",
+          1
+        ],
+        [
+          "work",
+          2
+        ]
+      ]
+    },
+    {
+      "canonical_id": "acme-corp",
+      "canonical_name": "Acme Corp",
+      "entity_type": "org",
+      "aliases": [],
+      "role": "organization",
+      "description": "The firm.",
+      "mention_count": 5,
+      "topics": [
+        "work"
+      ],
+      "evidence_fact_refs": [
+        [
+          "work",
+          0
+        ],
+        [
+          "work",
+          4
+        ],
+        [
+          "work",
+          7
+        ],
+        [
+          "work",
+          9
+        ],
+        [
+          "work",
+          11
+        ]
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "from": "alice",
+      "to": "bob",
+      "relation": "friend_of",
+      "confidence": 0.95,
+      "evidence_fact_refs": [
+        [
+          "relationships",
+          0
+        ]
+      ]
+    },
+    {
+      "from": "alice",
+      "to": "carol",
+      "relation": "colleague_of",
+      "confidence": 0.9,
+      "evidence_fact_refs": [
+        [
+          "work",
+          0
+        ]
+      ]
+    },
+    {
+      "from": "alice",
+      "to": "acme-corp",
+      "relation": "employed_by",
+      "confidence": 0.9,
+      "evidence_fact_refs": [
+        [
+          "work",
+          0
+        ]
+      ]
+    }
+  ]
+}
