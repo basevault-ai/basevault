@@ -93,6 +93,10 @@ on:
 
 permissions:
   contents: write
+  # For the native build-provenance attestation (public/org repo only):
+  # id-token to mint the Sigstore OIDC token, attestations to publish it.
+  id-token: write
+  attestations: write
 
 jobs:
   release:
@@ -527,16 +531,18 @@ jobs:
       # Provenance summary — renders a table on the run's summary page (visible
       # the moment you open the run URL). Records exactly what shipped: the
       # version, the source commit, and the SHA-256 of each post-notarization
-      # artifact users actually download. No artifact, no signing feature — an
-      # interim, at-a-glance provenance record. (Native GitHub build-provenance
-      # attestations are unavailable on user-owned private repos, so they wait
-      # for the public-repo cutover; this table is the stand-in until then.)
-      # Runs after notarize+staple+repack so the digests are final.
+      # artifact users actually download. A human-readable, at-a-glance record
+      # that complements the machine-verifiable attestation below and, unlike
+      # it, is produced on every runner (including the internal mirror, where
+      # native attestations don't run). Runs after notarize+staple+repack so
+      # the digests are final; exports DMG_OUT so the attestation step can name
+      # the same file.
       - name: Provenance summary
         run: |
           set -euo pipefail
           VERSION="${VERSION:-${GITHUB_REF_NAME#v}}"
           DMG_OUT="$GITHUB_WORKSPACE/src-tauri/target/release/bundle/dmg/BaseVault_${VERSION}_aarch64.dmg"
+          echo "DMG_OUT=$DMG_OUT" >> "$GITHUB_ENV"
 
           DMG_SHA=$(shasum -a 256 "$DMG_OUT" | awk '{print $1}')
           TAR_SHA=$(shasum -a 256 "$TAR_PATH" | awk '{print $1}')
@@ -555,6 +561,27 @@ jobs:
             echo "| \`.dmg\` SHA-256 | \`${DMG_SHA}\` |"
             echo "| \`.app.tar.gz\` SHA-256 | \`${TAR_SHA}\` |"
           } | tee -a "$GITHUB_STEP_SUMMARY"
+
+      # Native GitHub build-provenance attestation. Now that the public home is
+      # org-owned (basevault-ai/basevault), actions/attest-build-provenance is
+      # available — it is blocked on user-owned private repos — so real releases
+      # cut from the public repo get full SLSA build provenance: a Sigstore-
+      # signed, Rekor-logged attestation on the repo's /attestations page,
+      # verifiable with
+      #   gh attestation verify <artifact> --repo basevault-ai/basevault
+      # and identity-pinned to this repo + workflow. Attests the same final
+      # post-staple .dmg and .app.tar.gz the summary above digests. Gated to
+      # real tag pushes on the org repo; the internal mirror and dry-run
+      # dispatches skip it (unavailable there / nothing published).
+      - name: Attest build provenance
+        if: github.event_name == 'push' && github.repository_owner == 'basevault-ai'
+        # SHA-pinned (not a moving tag) — this action mints the provenance, so
+        # a repointed tag could forge it. Bump deliberately.
+        uses: actions/attest-build-provenance@0f67c3f4856b2e3261c31976d6725780e5e4c373 # v4.1.1
+        with:
+          subject-path: |
+            ${{ env.DMG_OUT }}
+            ${{ env.TAR_PATH }}
 
       # Replace tauri-action's pre-staple uploads on GitHub Releases with
       # the stapled versions, so direct downloaders get the proper bundle.
